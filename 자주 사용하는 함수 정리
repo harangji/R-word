@@ -1,1 +1,278 @@
 
+v1=c(1,2,3,4,5)
+v2=c('a','b','c','d','e')
+install.packages("googleVis")
+library(googleVis)
+
+Fruits
+#구할 값~기준+@, 구할 데이터, 조건
+
+#년도별로 판매된 수량의 총합
+aggregate(Sales~Year, Fruits,sum)
+
+#과일별로 가장 많이 판매된 수량
+aggregate(Sales~Fruit, Fruits,max)
+
+aggregate(Sales~Fruit+Year, Fruits,max)
+
+#apply(데이터, 행(1)/열(2), 함수) : matrix에 유용하게 사용(행,열을 대상으로 작업)
+
+m1 = matrix(c(1,2,3,
+              4,5,6),2,by=T)  #2행, 행우선
+
+m1
+apply(m1,1,sum) #행 더하기
+apply(m1,2,sum) #열 더하기
+apply(m1[,c(2,3)],2,max)
+
+#lapply(데이터,함수)/sapply(데이터,함수): list
+l1=list(Fruits$Sales)
+l2=list(Fruits$Profit)
+l1
+l2
+lapply(c(l1,l2),max)
+
+sapply(c(l1,l2),max)
+
+#데이터프레임에서 사용
+lapply(Fruits[,c(4,5)], max)
+sapply(Fruits[,c(4,5)], max)
+
+#tapply(출력값, 기준컬럼, 함수): 데이터셋의 factor 처리
+
+Fruits
+tapply(Sales,Fruit,sum) #불가
+tapply(Fruits$Sales,Fruits$Fruit,sum)
+
+#컬럼명을 변수로 직접 사용하기: attach
+#attach(Fruits) : 컬럼명을 변수처럼 직접 사용
+#공통적으로 계속 사용되는 대상 데이터프레임을 지정할 때 사용한다
+# $ : dataframe$ 컬럼명은 입력할 데이터가 적을 때 사용
+# 
+attach(Fruits)
+tapply(Sales,Fruit,sum) #이제 가능
+
+#판매된 과일들 합계
+tapply(Sales, Fruit, sum)
+
+#년도별 판매된 합계
+aggregate(Sales~Year,Fruits,sum)
+tapply(Sales, Year, sum)
+
+#mapply(함수, 벡터1, 벡터2...벡터n): 벡터나 리스트를 데이터프레임처럼 처리
+#데이터프레임이 아닌 벡터나 리스트형태로 데이터가 존재할때 마치 데이터프레임처럼 연산을 해주는 함수다
+#단 벡터들의 요소 갯수가 같아야 한다.
+v1=c(1,2,3,4,5)
+v2=c(10,20,30,40,50)
+v3=c(100,200,300,400,500)
+
+mapply(sum,v1,v2,v3)
+
+data1=read.csv("data1.csv")
+data1
+View(data1)
+
+#연도별 합계 구하기
+apply(data1[,c(2:15)], 2, sum)
+
+#연령별 합계 구하기
+apply(data1[,c(2:15)], 1, sum)
+
+data2=read.csv("1-4호선승하차승객수.csv",fileEncoding = "UCS-2LE")
+data2
+View(data2)
+attach(data2)
+
+#노선 번호별 승차인원수 합계
+tapply(승차, 노선번호, sum)
+#노선 번호 상관없이 하차 인원수 합계
+sapply(data2[,c(3,4)], sum)
+#노선 번호별 승하차 인원수ㅡ 합계
+aggregate(승차+하차~노선번호,data2,sum)
+#노선 번호별 승하차 최대 인원수
+aggregate(승차~노선번호,data2,max)
+#노선 번호별 승차 인원수 합계
+
+#노선 번호별 하차 인원수 합계
+#
+#사용자 정희함수
+#함수명=function(인수 또는 입력값){
+#수식 1
+#수식 2
+#...
+#return(반환값)
+#}
+#
+#1.입력값이 없는 경우
+my1= function(){
+  return(10)
+}
+
+my1
+my1()
+
+#2.입력값이 있는 경우
+my2=function(a){
+  b=a^2
+  return(b)
+}
+
+my2(3)
+
+my3=function(a,b){
+  c=a^b
+  return(c)
+}
+
+my3(2,3)
+
+my4=function(a,b){
+  c=abs(a-b)
+  return(c)
+}
+
+my4(2,3)
+
+my5=function(a,b){
+  if(a>b){
+    c=a-b
+  }else{
+    c=b-a
+  }
+  return(c)
+}
+
+my5(2,3)
+
+#sort(): 정렬
+s1=Fruits$Sales
+s1
+sort(s1)
+sort(s1,decreasing = T) #내림차순
+
+#plyr(): 원본 데이터를 분석하기 쉬운 형태로 나누어서 다시 새로운 형태로 만들어주는 패키지
+#apply() 함수를 확장시킨 것
+#ply(데이터,기준컬럼,함수)란, 함수앞에 두글자: 첫번째글자는 입력된 데이터 유형, 두번째글자는 출력될 데이터유형
+#-d: dataframe, a: array(matrix 포함), l: list
+#예시= dlply(), laply()
+
+install.packages("plyr")
+library(plyr)
+
+f=read.csv("fruits_10.csv")
+f
+
+#summarise: 기준 컬럼의 데이터끼리 모은 후 함수를 적용(sql의 group by와 유사)
+#과일 이름별로 판매량의 합계와 가격합계를 구하라
+ddply(f,'name',summarise, sum_qty=sum(qty),sum_price=sum(price))
+
+#과일 이름별로 최고판매량과 최저가격을 구하라
+ddply(f,'name',summarise,max_qty=max(qty),min_price=min(price))
+#년도별,과일 이름별로 최고판매량과 최저가격을 구하라
+ddply(f,c('year','name'),summarise,max_qty=max(qty),min_price=min(price))
+
+#transform: 만약 동일한 컬럼이 아닌 각 행별로 연산을 수행해서 해당 값을 출력해야 할 경우
+#- 주어진 데이터프레임에서 기준 컬럼으로 모은 후 계산해서 출력하고 싶으면 summarise,
+#다른 계산을 해서 각 행별로 각각 출력하고 싶은 경우 transform 
+#
+#pct_qty는 해당 과일의 판매수량이 기준 컬럼으로 합계한 총 판매개수 대비 몇 %를 차지하는지 계산
+ddply(f,'name',transform,sum_qty=sum(qty),pct_qty=round(qty*100/sum(qty),2)) #소수점 두자리
+
+#dplyr(): plyr()와 동시에 사용한다면 plyr 패키지의 함수가 우선 적용
+#특성함수
+#1. filter: 조건을 줘서 필터링
+#2. select: 특정 컬럼만 선택
+#3. arrange: 정렬
+#4. mutate: 새로운 변수 생성
+#5. summarise(with group_by): 주어진 데이터를 집계(min,max,mean,count)
+
+install.packages("dplyr")
+library(dplyr)
+
+d1=read.csv("야구성적.csv")
+d1
+View(d1)
+
+#filter
+#경기수가 120경기 이상인 선수
+d2=filter(d1,경기>=120)
+d2
+#경기수가 120경기 이상이면서 득점도 80점 이상인 선수
+d3=filter(d1,경기>=120&득점>=80)
+d3
+#포지션이 1루수이거나 3루수인 선수
+d4=filter(d1,포지션=="1루수"|포지션=="3루수")
+d4
+
+d4=filter(d1,포지션 %in% c("1루수","2루수")) #합리적인 or 필터
+d4
+
+#select
+#선수명, 포지션, 팀데이터만 조회
+select(d1,선수명,포지션,팀)
+
+#순위~타수까지 조회
+select(d1,순위:타수)
+
+#특정 컬럼 제외
+select(d1, -홈런, -타점, -도루)
+
+# %>%: 여러 문장을 조합해서 써야할 경우 사용
+# 선수명, 팀, 경기, 타수 조회하되 타수가 400 이상인 선수
+d1 %>%
+  filter(타수>=400)%>%
+  select(선수명,팀,경기,타수)
+#arrange
+
+d1 %>%
+  filter(타수>=400)%>%
+  select(선수명,팀,경기,타수)%>%
+  arrange(타수)
+
+d1 %>%
+  filter(타수>=400)%>%
+  select(선수명,팀,경기,타수)%>%
+  arrange(desc(타수))
+
+#mutate
+d1 %>%
+  select(선수명, 팀, 경기, 타수)%>%
+  mutate(경기X타수=경기*타수)%>%
+  arrange(desc(경기X타수))
+
+#안타율 컬럼생성 : 안타/타수 구해서 할푼리로 출력
+d1 %>%
+  select(선수명,팀,경기,안타,타수)%>%
+  mutate(안타율=round(안타/타수,3))%>%
+  arrange(desc(안타율))
+
+#summarise
+#팀별로 평균 경기 횟수
+d1 %>%
+  group_by(팀)%>%
+  summarise(avg=mean(경기, na.rm = T))
+
+d1 %>%
+  group_by(팀)%>%
+  dplyr::summarise(across(경기,mean))
+
+d1 %>%
+  group_by(팀)%>%
+  dplyr::summarise(across(경기,~mean(.,na.rm=T)))
+
+#여러 컬럼을 대상으로 집계
+#팀별로 경기와 타수의 평균
+
+d1%>%
+  group_by(팀)%>%
+  summarise_each(funs(mean),경기,타수)
+
+#summarise_each-> across
+d1 %>%
+  group_by(팀) %>%
+  dplyr::summarise(across(c(경기,타수),mean))
+            
+d1 %>%
+  group_by(팀) %>%
+  dplyr::summarise(across(c(경기,타수),~mean(.,na.rm = T)))
+
