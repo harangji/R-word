@@ -1,1 +1,285 @@
+install.packages('dplyr')
+install.packages('googleVis')
+install.packages('ggplot2')
+
+# 1. Fruits 데이터셋의 컬럼을 변수로 사용하게 설정하시오
+
+library('googleVis')
+Fruits
+attach(Fruits)
+
+# 2. Expenses 값이 90보다 크고 Sales 값도 90보다 큰 값을 출력
+f = Fruits
+subset(Fruits,Expenses > 90 & Sales > 90)  # subset 원하는 조건에 맞는 것만 검색
+
+# 3. Expenses 값이 79와 91인 값만 출력(논리연산자 사용하지 말 것)
+filter(f, Expenses %in% c(79,91))
+
+# 4. 과일 이름별로 모아서 판매량의 합계를 구하되, 만약 NA값이 있을 경우 자동삭제 옵션을 사용하시오
+f %>% 
+  group_by(Fruit)%>%
+  dplyr::summarise(sum_sales=sum(Sales,na.rm=T))
+
+# 5. 과일 이름별로 모아서 판매량과 이익의 합계를 구하시오
+f %>%
+  group_by(Fruit)%>%
+  dplyr::summarise(across(c(Sales,Profit),sum))
+
+f %>%
+  group_by(Fruit)%>%
+  dplyr::summarise(across(c(Sales,Profit),~sum(.,na.rm=T)))
+
+#---------------------------------------------
+library(dplyr)
+library(ggplot2)
+# mpg 데이터를 이용해서 분석 문제를 해결하시오
+mpg
+# 1. mpg 데이터의 class는 "suv", "compact" 등 자동차를 특징에 따라 일곱 종류로 분류한 변수입니다.
+# 어떤 차종의 연비가 높은지 비교하기 위해 class별 cty 평균을 구하시오
+mpg %>%
+  group_by(class)%>%
+  dplyr::summarise(mean_cty=mean(cty))
+
+# 2. 어떤 회사에서 "compact"(경차) 차종을 가장 많이 생산하는지 알아보려고 합니다. 각 회사별
+# "compact" 차종 수를 내림차순으로 정렬해 출력하세요
+mpg %>%
+  filter(class=="compact")%>%
+  group_by(manufacturer)%>%
+  dplyr::summarise(count=n())%>%
+  arrange(desc(count))
+
+
+#------------------------------------------------------------------------------
+#
+#
+#
+#
+#stringr(): 작업 대상이 문자일 경우
+install.packages("stringr")
+library(stringr)
+
+#str_detect(): 특정문자 포함여부 확인하기(true/false)
+f=c('apple','Apple','banana','pineapple')
+str_detect(f,'A')
+str_detect(f,'a')
+str_detect(f,'^a') #시작되는 글자 찾기
+str_detect(f,'e$') #끝나는 글자 찾기
+str_detect(f,'^[aA]')
+str_detect(f,'[aA]')
+
+#대소문자 무시
+p='a.b'
+s=c('abb','a.b')
+str_detect(s,p)
+str_detect(s,fixed(p))
+str_detect(s,coll(p))
+str_detect(s,fixed('A',ignore_case = T))
+
+#str_count() : 특정문자의 출현횟수
+str_count(f,fixed('A'))
+str_count(f,fixed('A',ignore_case=T))
+str_count(f,'a')
+
+# str_c() : 문자열 합치기
+str_c('apple ','pen')
+str_c('fruits: ',f)
+
+str_c(f," name is ",f)
+str_c(f,collapse = " ")
+str_c(f,collapse = "-")
+
+#str_dup(): 반복 출력
+str_dup(f,3)
+
+#str_length(): 문자열 길이
+str_length('apple')
+str_length(f)
+
+#str_locate(): 특정 문자의 위치
+str_locate('apple','a')
+str_locate(f,'a')
+
+# str_replace(): 문자열 변경
+str_replace('apple','p','☆')
+str_replace_all('apple','p','☆')
+
+#str_split() : 데이터셋을 지정된 기호로 문자열 분리
+f2=str_c('apple','/','banana','/','orange')
+f2
+str_split(f2,'/')
+
+#str_sub() : 지정된 길이만큼 문자를 잘라내라
+f2
+str_sub(f2,start=1,end=3)
+str_sub(f2,start=6,end=9)
+str_sub(f2,start=-5)
+
+#str_trim(): 문자열의 가장 앞과 가장 뒤의 공백제거
+str_trim("      apple   banana  oran    ")
+
+# 조건문, 반복문
+# 비교연산자 : ==, !=, >=, <=, >,<
+
+# 조건문
+# if()
+# if() else
+
+# 절대값 구하기
+my1 = function(x){
+  if(x<0){
+    return(-x)
+  }else{
+  return(x)
+    }
+  }
+my1(1)
+
+#if() else if() 
+
+#입력된 숫자가 0보다 크면 2배의 값을 출력하고,
+#0일 경우 0을 출력하고, 0보다 작을 경우 1/2 배의 값을 출력하는 함수를 만드시오
+my2 = function(x){
+  if(x==0){
+    
+  }
+  else if(x>0)
+    x=x*2
+  else if(x<0)
+    x=x/2
+  return(x)
+}
+
+my2(0)
+my2(3)
+my2(-3)
+
+#ifelse(a,b,c): a가 참이면 b를 실행, 거짓이면 c를 실행
+#홀,짝 구분
+
+no = scan()
+ifelse(no %%2 == 0, "짝","홀")
+
+if(no%%2==0){
+  print("짝")
+}else{
+  "홀"
+}
+
+#서로 다른 두개의 숫자를 입력받아서 두 숫자 사이에 존재하는 숫자의 갯수를 구하라
+no2 = scan()
+no3 = scan()
+ifelse(no2>=no3,no2-no3-1,no3-no2-1)
+
+no4 = scan() #두개입력
+ifelse(no4[1]>=no4[2],no4[1]-no4[2]-1,no4[2]-no4[1]-1)
+
+#반복문 while
+no=0
+while(no<5){
+  print(no)
+  no=no+1
+}
+
+#break
+x=1
+while(x<5){
+  x=x+1
+  if(x==4)
+    break
+  print(x)
+}
+
+#next : 해당 반복문을 빠져나와서 다시 조건식으로 간다
+x=1
+while(x<5){
+  x=x+1
+  if(x==4)
+    next
+  print(x)
+}
+
+#for
+#정수 n을 입력받아서 1부터 n까지의 합계
+my3 = function(n){
+  i=0
+  for(j in 1:n){
+    i=i+j
+  }
+  print(i)
+}
+my3(10)
+
+#여러 조건을 동시에 지정
+# ! : not
+# &&(&) : and
+# ||(|) : or
+
+#두 개의 숫자를 입력 받은 후 두 값이 모두 양수일 경우 두 수의 곱을 출력하고,
+#두 값 중 하나라도 0이나 음수일 경우는 두 수의 합을 출력하시오
+n5=scan()
+
+ifelse((n5[1]>0 )&& (n5[2]>0) ,n5[1]*n5[2],n5[1]+n5[2])
+
+#특정 패턴만 골라내기
+#grep(패턴,벡터) : 벡터에서 특정패턴을 찾아 그 위치 출력
+c1 = c('apple','Apple','APPLE','banana','grape')
+grep('apple',c1)
+
+c2 = c('apple','banana')
+
+grep(c2,c1) # 안됨
+grep(paste(c2,collapse = "|"),c1) #두가지 패턴을 동시에 찾기
+grep(paste(c2,collapse = "|"),c1, value=T)
+
+grep('pp',c1)
+grep('pp',c1,value=T)
+grep('^A',c1,value=T)
+grep('e$',c1,value=T)
+
+c2=c('grape1','apple1','apple','orange','Apple')
+grep('[1-9]',c2,value = T)
+grep('[[:upper:]]',c2,value=T)
+
+#nchar() : 입력된 배열이나 문자열의 길이
+c1
+nchar(c1)
+str_length(c1)
+
+length(c1)
+
+nchar("홍길동")
+nchar("a b")
+
+#paste('a','b','c') : a,b,c를 합쳐서 하나의 문자열처럼 출력
+paste('홍','길','동')
+library(stringr)
+str_c('홍','길','동')
+
+paste('홍','길','동',sep="")
+paste('홍','길','동',sep="-")
+
+paste('I',"'m","a boy")
+paste('I','\'m','a boy')
+
+#substr('a', 시작위치, 끝나는위치): 특정부분만 골라내기
+substr('abc123',3,3)
+str_sub('abc123',3,3)
+
+substr('abc123',3,5)
+str_sub('abc123',3,5)
+
+#strsplit('문자열',split='기준문자'): 특정 글자를 기준으로 분리
+strsplit('2023/04/14',split = '/')
+
+#regexpr(패턴,문자열): 특정 패턴 찾기
+grep('-','010-1111-1111')
+regexpr('-','010-1111-1111')
+
+#벡터 사용하는 방법
+#데이터프레임 서브셋 사용하는 방법
+
+
+
+
+
 
