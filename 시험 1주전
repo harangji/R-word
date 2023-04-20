@@ -2,6 +2,7 @@ install.packages('dplyr')
 install.packages('googleVis')
 install.packages('ggplot2')
 
+
 # 1. Fruits 데이터셋의 컬럼을 변수로 사용하게 설정하시오
 
 library('googleVis')
