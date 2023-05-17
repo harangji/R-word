@@ -7,7 +7,6 @@ library(dplyr)
 library(googleVis)
 library(ggplot2)
 
-개씨~발
 
 #그래픽 기초
 #plot(): 분포도나 꺾은선
