@@ -1,0 +1,228 @@
+setwd("c:/r_workdata")
+
+install.packages("devtools")
+install.packages("wordcloud")
+install.packages("RcolorBrewer")
+
+library(lubridate)
+library(plyr)
+library(dplyr)
+library(googleVis)
+library(ggplot2)
+library(RcolorBrewer)
+library(devtools)
+library(wordcloud)
+
+#데이터 정제
+#빠진데이터 찾기 : 결측치 정제
+#결측치
+#-누락된 값, 비어있는 값
+#-함수 사용 불가, 분석 결과 왜곡
+#-제거 후 분석
+
+df = data.frame(gender=c("M","F",NA,"M","F"),score=c(5,4,3,4,NA))
+df
+
+#결측치 확인
+is.na(df)
+table(is.na(df))
+table(is.na(df$gender))
+table(is.na(df$score))
+
+mean(df$score)
+
+#결측치 제거
+#결측치 행 제거
+df %>%
+  filter(is.na(score))
+
+df %>%
+  filter(!is.na(score))
+
+#결측치 제거한 데이터로 분석
+df1 = df %>%
+  filter(!is.na(score))
+df1
+mean(df1$score)
+sum(df1$score)
+
+# 여러 변수에 동시에 결측치 없는 데이터 추출
+df1 = df %>%
+  filter(!is.na(score)&!is.na(gender))
+df1
+df
+
+# 결측치가 하나라도 있으면 제거
+df2 = na.omit(df) #윗 문장을 실행하는것과 동일한 결과
+df2
+
+#함수에 결측치 제외 기능 : na.rm=T
+mean(df$score,na.rm = T)
+
+exam = read.csv("csv_exam.csv")
+exam
+
+exam[c(3,8,15),'math']=NA
+exam
+
+exam %>%
+  summarise(mean_math = mean(math))
+
+exam %>%
+  summarise(mean_math = mean(math,na.rm = T))
+
+#결측치 대체하기
+#- 결측치가 많을 경우 제외하면 데이터 손실이 큼
+#- 대안 : 다른 값 채워 넣기
+#
+#결측치 대체법
+#- 대표값으로 일괄 대체 : 평균, 최빈값, 중앙값
+#- 통계분석기법, 예측값 추정해서 대체
+#
+#평균값으로 결측치 대체
+
+mean(exam$math,na.rm = T)
+
+exam$math = ifelse(is.na(exam$math),55,exam$math)
+exam$math
+mean(exam$math)
+
+# 이상치 : 정상범주에서 크게 벗어난 값
+# - 포함시 분석 결과 왜곡
+# - 결측처리 후 제외하고 분석
+# 
+# 이상치 종류
+# - 존재할 수 없는 값 : 결측처리
+# - 극단적인 값 : 정상범위 기준을 정해서 결측처리
+# 
+# 이상치 제거 : 존재할 수 없는 값
+
+out = data.frame(gender=c(1,2,1,3,2,1),score=c(5,3,4,2,4,6))
+out
+
+#이상치 확인
+table(out$gender)
+table(out$score)
+
+# 결측처리
+out$gender = ifelse(out$gender==3,NA,out$gender)
+out$gender = ifelse(out$gender %in% c(1,2),out$gender,NA) #합리적
+
+out$score = ifelse(out$score > 5,NA,out$score)
+
+out
+
+#결측처리 후 분석
+out %>%
+  filter(!is.na(gender)& !is.na(score)) %>%
+  group_by(gender) %>%
+  dplyr::summarise(mean_score=mean(score))
+
+# 이상치 제거 : 극단적인 값
+# - 정상범주에서 크게 벗어나면 결측처리
+# 
+# 판단 기준
+# - 논리적 판단
+# - 통계적 판단 : boxplot() 이용
+
+mpg
+boxplot(mpg$hwy) #설명은 알아서 찾아봐
+boxplot(mpg$hwy)$stats
+
+# 결측처리
+mpg$hwy = ifelse(mpg$hwy < 12 | mpg$hwy > 37 ,NA, mpg$hwy)
+table(is.na(mpg$hwy))
+
+#결측치 제외하고 분석
+mpg %>% 
+  filter(!is.na(hwy)) %>% 
+  group_by(drv) %>% 
+  dplyr::summarise(mean_hwy=mean(hwy))
+
+# ggplot2() : plot() 함수의 확장버전
+# ggplot2(data.frame, aes( x=x축데이터, y=y축데이터))+geom_함수()
+# 
+# geom부분 설정 값
+# - stat : 주어진 데이터에서 geom에 필요한 데이터를 생성한다
+# -stat_bin : 아래와 같은 데이터를 갖는 dataframe출력
+# 1.count : 각 항목의 빈도수
+# 2.density : 각 항목의 밀도수
+# 3.ncount : count와 같으나 값의 범위가 (0,1)로 스케일링됨
+# 4.ndensity : density와 같으나 값의 범위가 (0,1)로 스케일링됨
+
+kor = read.table("학생별국어성정_new.txt", header=T, sep=",")
+kor
+ggplot(kor,aes(x=이름, y=점수))+point()
+
+#geom_bar() : barplot()과 비슷한 역할
+ggplot(kor,aes(x=이름, y=점수))+geom_bar(stat="identity") # identity=x,y축 둘다 존재함
+
+ggl=ggplot(kor,aes(x=이름, y=점수))+geom_bar(stat="identity",color='red',fill='green')
+
+#값 바꾸면서 확인인
+ggl+theme(axis.text.x=element_text(angle=45,hjust = 1, vjust = 1, color = 'blue', size=8))
+
+kem = read.csv("학생별과목별성적_국영수_new.csv")
+kem
+skem = arrange(kem,이름,과목)
+skem
+
+skem2 = ddply(skem,"이름",transform, 누적합계=cumsum(점수))
+skem2
+
+#점수의 50%되는 위치 지정
+skem3 = ddply(skem2, "이름",transform, 누적합계=cumsum(점수), label=cumsum(점수)-0.5*점수)
+skem3
+
+gg2=ggplot(skem3, aes(x=이름, y=점수, fill=과목))+geom_bar(stat='identity',position = position_stack(reverse = T))+geom_text(aes(y=label,label=paste(점수,"점")),color='black',size=4)+guides(fill=guide_legend(reverse=T))
+
+gg2+theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, color='black',size=8))
+
+install.packages("gridExtra")
+library(gridExtra)
+
+mtcars
+mt=mtcars
+
+# geom_point()
+ggplot(mt, aes(x=hp, y=mpg))+geom_point(color='blue')
+
+ggplot(mt, aes(x=hp, y=mpg))+geom_point(aes(color=factor(am)))
+
+ggplot(mt, aes(x=hp, y=mpg))+geom_point(size=4)
+
+ggplot(mt, aes(x=hp, y=mpg))+geom_point(aes(size=wt))
+
+ggplot(mt, aes(x=hp, y=mpg))+geom_point(aes(shape=factor(am),size=wt, color=factor(am)))+scale_color_manual(values = c('red','green'))
+
+ggplot(mt, aes(x=hp, y=mpg))+geom_point(color='blue')+geom_line()
+
+ggplot(mt, aes(x=hp, y=mpg))+geom_point(color='blue')+geom_line()+labs(x="마력",y="연비")
+
+
+#geom_line()
+th = read.csv("학생별과목별성적_3기_3명.csv")
+th
+ss=arrange(th,이름,과목)
+ss
+
+ggplot(ss,aes(x=과목, y=점수, group=이름, color=이름))+geom_line()+geom_point(size=6,shape=22)#0~25
+
+#geom_area()
+dis=read.csv("1군전염병발병현황_년도별.csv")
+dis
+ggplot(dis,aes(x=년도별, y=장티푸스, group=1))+geom_area(color='red',fill='cyan',alpha=0.4)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
