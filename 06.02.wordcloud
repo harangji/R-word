@@ -1,0 +1,194 @@
+setwd("c:/r_workdata")
+
+install.packages("devtools")
+install.packages("wordcloud")
+install.packages("RcolorBrewer")
+
+library(lubridate)
+library(plyr)
+library(dplyr)
+library(googleVis)
+library(ggplot2)
+library(RColorBrewer)
+library(devtools)
+library(wordcloud)
+
+#워드클라우드
+#1. 데이터에서 단어만 추출
+#2. 단어 집합 생성
+#3. 단어 필터링
+#4. 단어 핸들링
+#5. txt파일로 저장하고 table로 읽어들이면서 공백제거
+#6. 단어빈도수 저장
+#7. wordcloud로 출력
+#8. 자바로딩 안될때
+#Sys.setenv(JAVA_HOME='c:/Program Files/Java/jre(버전))
+
+install.packages("multilinguer")
+library(multilinguer)
+
+install.packages(c('stringr','hash','tau','Sejong','RSQLite','devtools'),type = 'binary')
+install.packages("remotes")
+remotes::install_github("haven-jeon/KoNLP",upgrade = 'never',INSTALL_opt=c("--no-multiarch"),force=TRUE)
+
+library(KoNLP)
+useSejongDic()
+
+#1. 데이터에서 단어만 추출
+d1 = readLines("BTS유엔연설_국문.txt") #파일-다른이름으로 저장- ansi타입으로 변경
+d1
+
+d2 = sapply(d1,extractNoun, USE.NAMES = F)
+d2
+
+#2. 단어 집합 생성
+d3 = unlist(d2)
+d3
+
+#3. 단어 필터링
+d3 = Filter(function(x){
+  nchar(x) <= 7
+},d3)
+d3
+
+#4. 단어 핸들링
+d3 = gsub("\\d+","",d3)
+d3 = gsub("\\.","",d3)
+d3 = gsub(" ","",d3)
+d3 = gsub("\\'","",d3)
+d3 = gsub('\\"',"",d3)
+d3 = gsub("리","",d3)
+d3 = gsub("님","",d3)
+d3 = gsub("들","",d3)
+d3 = gsub("쯤","",d3)
+d3 = gsub("나","자신",d3) #나를 자신으로 통일
+d3 = gsub("내","자신",d3)
+d3 = gsub("저","자신",d3)
+d3 = gsub("네","너",d3)
+d3 = gsub("것","",d3)
+d3 = gsub("그","",d3)
+d3 = gsub("것","",d3)
+d3 = gsub("우","",d3)
+d3
+
+#5. txt파일로 저장하고 table로 읽어들이면서 공백제거
+write(unlist(d3), "BTS_kor.txt")
+d4 = read.table("BTS_kor.txt")
+d4
+
+#6. 단어빈도수 저장
+wc = table(d4)
+wc
+
+d3 = Filter(function(x){ #두글자 이하 삭제
+  nchar(x) >= 2
+},d3)
+
+write(unlist(d3), "BTS_kor.txt")
+d4 = read.table("BTS_kor.txt")
+d4
+wc = table(d4)
+wc
+
+head(sort(wc, decreasing = T),20)
+
+#7. wordcloud로 출력
+pal =brewer.pal(9,"Set3")
+wordcloud(names(wc),freq = wc, scale = c(5,1), rot.per = 0.25, min.freq = 2, random.order = F, random.color = T,colors = pal)
+
+install.packages("wordcloud2")
+library(wordcloud2)
+
+wordcloud2(wc, color = 'random-light')
+wordcloud2(wc, shape = 'star')
+
+wc1 = head(sort(wc,decreasing = T),20)
+wordcloud2(wc1, color = 'random-lift')
+wordcloud2(wc1, shape = 'star')
+
+library(stringr)
+
+buildDictionary( user_dic = data.frame(readLines("제주도여행지.txt"),"ncn"))
+
+t1 = readLines("jeju.txt")
+
+p1 = sapply(t1, extractNoun, USE.NAMES = F)
+c1 = unlist(p1)
+
+p1 = str_replace_all(c1,"[^[:alpha:]]","")
+p1
+
+p1 = gsub(" ",'',p1)
+t1 = readLines("제주도여행코스gsub.txt")
+
+for(i in 1:length(t1)){
+  p1 = gsub((t1[i]),"",p1)
+}
+
+p1
+
+p1 = Filter(function(x){
+  nchar(x) >=2
+},p1)
+
+write(unlist(p1),"jeju_2.txt")
+p2 = read.table("jeju_2.txt")
+p2
+
+wc = table(p2)
+wc
+
+head(sort(wc,decreasing = T),20)
+
+pal = brewer.pal(9,"Set3")
+wordcloud(names(wc),freq = wc, scale = c(5,1), rot.per = 0.25, min.freq = 2, random.order = F, random.color = T,colors = pal)
+
+wc1 = head(sort(wc,decreasing = T),20)
+wordcloud2(wc1, color = 'random-light')
+wordcloud2(wc1, shape = 'star')
+
+#실습) 서울 명소 추천
+#원본 파일 : seoul_go.txt
+
+#gsub 파일 : 서울명소gsub.txt
+
+#merge 파일 : 서울명소merge.txt
+
+buildDictionary(user_dic = data.frame(readLines("서울명소merge.txt"),"ncn"))
+txt=readLines("seoul_go.txt")
+
+p1 = sapply(txt, extractNoun, USE.NAMES = F)
+
+p2 = unlist(p1)
+p3 = str_replace_all(p2, "[^[:alpha:]]","")
+p3 = gsub(" ","",p3)
+
+t1 = readLines("서울명소gsub.txt")
+p3
+for(i in 1:length(t1)){
+  p3 = gsub((t1[i]),"",p3)
+}
+
+p4 = Filter(function(x){
+  nchar(x) >=2
+},p3)
+
+p4
+
+write(p4, "seoul_2.txt")
+p5 = read.table("seoul_2.txt")
+
+wc = table(p5)
+wc
+
+
+pal =brewer.pal(9,"Set3")
+wordcloud(names(wc),freq = wc, scale = c(5,1), rot.per = 0.25, min.freq = 2, random.order = F, random.color = T,colors = pal)
+
+wc1 = head(sort(wc, decreasing = T),20)
+
+wordcloud2(wc1, color = 'random-light')
+wordcloud2(wc1, shape = 'star')
+
+
+
